@@ -57,6 +57,8 @@ export function MomentumApp() {
   const [rsvpMessage, setRsvpMessage] = useState("");
   const [lessonOpen, setLessonOpen] = useState(false);
   const [lessonError, setLessonError] = useState("");
+  const [unlockedLessons, setUnlockedLessons] = useState(1);
+  const [activeLesson, setActiveLesson] = useState(1);
   const [goal, setGoal] = useState("");
   const [savedGoal, setSavedGoal] = useState("Leave my phone charging outside the bedroom each night.");
   const [socialView, setSocialView] = useState<SocialView>("feed");
@@ -120,7 +122,7 @@ export function MomentumApp() {
           {view === "home" && <HomeView habits={habits} setHabits={setHabits} goal={savedGoal} navigate={navigate} />}
           {view === "activities" && <ActivitiesView activities={shownActivities} filterOpen={filterOpen} setFilterOpen={setFilterOpen} filterName={filterName} setFilterName={setFilterName} filterType={filterType} setFilterType={setFilterType} onSelect={setSelectedActivity} onPost={() => setPostOpen(true)} />}
           {view === "calendar" && <CalendarView activities={activities} onSelect={setSelectedActivity} />}
-          {view === "lessons" && <LessonsView onOpen={() => setLessonOpen(true)} onLocked={() => setLessonError("Complete the previous lesson before opening this one.")} error={lessonError} />}
+          {view === "lessons" && <LessonsView unlocked={unlockedLessons} onOpen={(n) => { setActiveLesson(n); setLessonOpen(true); }} onLocked={() => setLessonError("Complete the previous lesson before opening this one.")} error={lessonError} />}
           {view === "social" && <SocialViewPage tab={socialView} setTab={setSocialView} friendOpen={friendOpen} setFriendOpen={setFriendOpen} />}
           {view === "settings" && <SettingsView tab={settingsTab} setTab={setSettingsTab} />}
         </main>
@@ -137,9 +139,10 @@ export function MomentumApp() {
         setActivities((all) => [...all, { id: Date.now(), title: String(form.get("title")), type: "Community", date: String(form.get("date")), time: String(form.get("time")), location: String(form.get("location")), distance: 0, people: 1, details: String(form.get("details")) }]);
         setPostOpen(false); setPostError("");
       }} />}
-      {lessonOpen && <LessonModal goal={goal} setGoal={setGoal} error={lessonError} onClose={() => { setLessonOpen(false); setLessonError(""); }} onFinish={() => {
-        if (goal.trim().split(/\s+/).filter(Boolean).length < 30) { setLessonError("Your goal needs at least 30 words before you can finish this lesson."); return; }
-        setSavedGoal(goal); setLessonOpen(false); setLessonError("");
+      {lessonOpen && <LessonModal lesson={activeLesson} goal={goal} setGoal={setGoal} error={lessonError} onClose={() => { setLessonOpen(false); setLessonError(""); }} onFinish={() => {
+        if (goal.trim().split(/\s+/).filter(Boolean).length < 5) { setLessonError("Your goal needs at least 5 words before you can finish this lesson."); return; }
+        setSavedGoal(goal); setLessonOpen(false); setLessonError(""); setGoal("");
+        setUnlockedLessons((u) => Math.min(u + 1, lessons.length));
       }} />}
     </div>
   );
